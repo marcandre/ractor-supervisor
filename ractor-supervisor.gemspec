@@ -18,6 +18,8 @@ Gem::Specification.new do |spec|
   spec.metadata['source_code_uri'] = 'https://github.com/marcandre/ractor-supervisor'
   spec.metadata['changelog_uri'] = 'https://github.com/marcandre/ractor-supervisor/blob/master/Changelog.md'
 
+  spec.add_dependency 'require_relative_dir'
+
   # Specify which files should be added to the gem when it is released.
   # The `git ls-files -z` loads the files in the RubyGem that have been added into git.
   spec.files = Dir.chdir(File.expand_path(__dir__)) do

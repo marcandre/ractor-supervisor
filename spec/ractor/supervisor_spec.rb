@@ -1,11 +1,16 @@
 # frozen_string_literal: true
 
-RSpec.describe Ractor::Supervisor do
-  it 'has a version number' do
-    expect(Ractor::Supervisor::VERSION).not_to be nil
-  end
+module Ractor
+  class Supervisor
+    RSpec.describe self do
+      context 'given a spec built manually' do
+        let(:first_child_spec) { ChildSpecs.new(Multiplier, 42) }
+        let(:second_child_spec) { ChildSpecs.new(Multiplier, 42) }
+        let(:specs) { Specs.new([first_child_spec, second_child_spec]) }
+        subject(:supervisor) { Supervisor::Client.new(specs) }
 
-  it 'does something useful' do
-    expect(false).to eq(true)
+        its(:inspect) { is_expected.to eq 'asdasd' }
+      end
+    end
   end
 end

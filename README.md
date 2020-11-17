@@ -1,28 +1,85 @@
 # Ractor::Supervisor
 
-Welcome to your new gem! In this directory, you'll find the files you need to be able to package up your Ruby library into a gem. Put your Ruby code in the file `lib/ractor/supervisor`. To experiment with that code, run `bin/console` for an interactive prompt.
+Experimental port of Elixir's `Supervisisor` functionality for Ruby `Ractor`s.
 
-TODO: Delete this and the text above, and describe your gem
+*Note*: I lack experience with actors and I'm quite unsure of where this is going.
 
 ## Installation
-
-Add this line to your application's Gemfile:
 
 ```ruby
 gem 'ractor-supervisor'
 ```
 
-And then execute:
-
-    $ bundle install
-
-Or install it yourself as:
-
-    $ gem install ractor-supervisor
-
 ## Usage
 
-TODO: Write usage instructions here
+
+```ruby
+class Example < Ractor::Server
+  def initialize(initial = nil)
+    puts "Starting #{initial}"
+  end
+
+  def run
+    loop do
+      value = Ractor.receive
+      puts "Processing #{value}"
+    end
+  end
+end
+
+boss = Ractor::Supervisor.new(
+  Example,
+  [Example, 'initial arg'],
+  strategy: :one_for_one
+)
+
+specs = Ractor::Supervisor::Specs.new(strategy: :one_for_one) do |spec|
+  spec.add Example,
+  spec.add Example, args: 'initial arg', name: 'ex2'
+  spec.add args: 'initial arg', name: 'ex2', restart: :permanent do |*args|
+    Example.new(*args).run
+  end
+end
+
+boss = Ractor::Supervisor.new(specs)
+
+# prints => "Starting "
+# prints => "Starting initial arg"
+supervised = boss.children.last
+supervised << 'bar'
+# prints "Processing bar"
+
+class Buggy
+  def to_s
+    raise 'oops'
+  end
+end
+supervised << Buggy.new
+# kills ractor, Supervisor recreates it
+# prints => "Starting initial arg"
+supervised << 'baz'
+# prints "Processing baz"
+
+Ractor.shareable?(boss) # => true
+```
+
+## Implementation details
+
+### Server
+
+Server is a protocol to declare a class with behavior on the client side and on the server side. It actually defines two classes, the Server itself, and the Client.
+
+The client holds (only) the ractor of the server. Its methods are the methods of the server, with the implementation is to yield the method name and any arguments to the servers. For `sync` methods, the current ractor is also sent and the result is `receive`d before returning.
+
+Methods expecting a block can also run their block either server-side, or client-side [todo: default?, todo: naming one or the other?]. Executing them client-side is done with a Thread.
+
+
+### Supervisor
+
+
+The `supervise` method returns a `Ractor::Supervised` that delegates most calls to the current Ractor. If it crashes, this Ractor will be changed for a new one. The method `ractor` returns the current Ractor.
+
+The `Supervisor` assumes that `Ractor.yield` is *not* used by the supervised ractors.
 
 ## Development
 
