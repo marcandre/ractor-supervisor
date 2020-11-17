@@ -1,4 +1,6 @@
-require "ractor/supervisor/version"
+# frozen_string_literal: true
+
+require 'ractor/supervisor/version'
 
 module Ractor
   module Supervisor
