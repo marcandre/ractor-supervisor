@@ -2,8 +2,9 @@
 
 require 'bundler/setup'
 require 'ractor/supervisor'
+require 'rspec/its'
 
-RequireRelativeDir.require_relative_dir 'fixtures'
+RequireRelativeDir.require_relative_dir 'ractor/fixtures'
 
 RSpec.configure do |config|
   # Enable flags like --only-failures and --next-failure

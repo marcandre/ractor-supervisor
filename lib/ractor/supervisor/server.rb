@@ -57,15 +57,7 @@ module Ractor
         end
 
         private def inherited(base)
-          base.class_eval <<~RUBY, __FILE__, __LINE__ + 1
-            extend Server::ClassMethods
-
-            class Client < superclass::Client
-              ServerCalls = Module.new
-              include ServerClass
-            end
-          RUBY
-
+          base.create_client_class
           super
         end
 
@@ -89,9 +81,21 @@ module Ractor
             end
           RUBY
         end
+
+        def create_client_class
+          class_eval <<~RUBY, __FILE__, __LINE__ + 1
+            class Client < self::Client
+              ServerCalls = Module.new
+              include ServerCalls
+            end
+          RUBY
+        end
       end
 
-      define_singleton_method :included, ClassMethods.instance_method(:inherited)
+      def self.included(base)
+        base.extend Server::ClassMethods
+        base.create_client_class
+      end
     end
   end
 end

@@ -12,3 +12,33 @@ class Multiplier
     end
   end
 end
+
+class MultiplierServer
+  include Ractor::Supervisor::Server
+  attr_accessor :factor
+  sync :factor
+  async :factor=
+
+  def initialize(factor)
+    @factor = factor
+  end
+
+  sync def transform(number)
+    @factor * number
+  end
+end
+
+class AfineServer < MultiplierServer
+  attr_accessor :offset
+  sync :offset
+  async :offset=
+
+  def initialize(factor, offset:)
+    @offset = offset
+    super(factor)
+  end
+
+  sync def transform(number)
+    super + @offset
+  end
+end
