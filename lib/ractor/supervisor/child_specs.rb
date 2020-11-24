@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-module Ractor
+class Ractor
   class Supervisor
     ChildSpecs = Struct.new(:constructor, :arguments, :restart)
 

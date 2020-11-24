@@ -2,11 +2,13 @@
 
 require 'delegate'
 require 'require_relative_dir'
+require 'backports/3.0.0/ractor' if RUBY_VERSION < '3'
+
 using RequireRelativeDir
 
 require_relative_dir
 
-module Ractor
+class Ractor
   class Supervisor
     RESTARTS_ALLOWED = 5
     RESTART_WINDOW_IN_SECONDS = 4

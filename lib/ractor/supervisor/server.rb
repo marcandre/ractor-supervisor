@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-module Ractor
+class Ractor
   class Supervisor
     module Server
       EXCEPTION = Object.new.freeze
@@ -9,7 +9,7 @@ module Ractor
         attr_reader :ractor
 
         def initialize(*args, **options)
-          ractor = Ractor.new(self.class, *args, options.freeze) do |klass, *args, options|
+          ractor = Ractor.new(options.freeze, self.class::Server, *args) do |options, klass, *args|
             server = klass.new(*args, **options)
             server.main_loop
           end
@@ -24,7 +24,10 @@ module Ractor
       end
 
       private def receive
-        Ractor.receive
+        p 'here'
+        data = Ractor.receive
+        p "received", data
+        data
       end
 
       private def process(data)
@@ -64,7 +67,7 @@ module Ractor
         private def define_async_call(method_name)
           self::Client::ServerCalls.module_eval <<~RUBY, __FILE__, __LINE__ + 1
             def #{method_name}(*args, **options)
-              ractor.send(:#{method_name}, args.freeze, options.freeze)
+              ractor.send([:#{method_name}, args.freeze, options.freeze].freeze)
             end
           RUBY
         end
@@ -73,21 +76,22 @@ module Ractor
           self::Client::ServerCalls.module_eval <<~RUBY, __FILE__, __LINE__ + 1
             def #{method_name}(*args, **options)
               cur = Ractor.current
-              ractor.send(:#{method_name}, args.freeze, options.freeze, cur)
-              result = cur.receive
-              raise cur.receive if EXCEPTION == result
+              ractor.send([:#{method_name}, args.freeze, options.freeze, cur].freeze.tap{|x| p 'send', x})
+              result = Ractor.receive
+              raise Ractor.receive if EXCEPTION == result
 
               result
             end
           RUBY
         end
 
-        def create_client_class
+        def create_client_class # hide in refinement?
           class_eval <<~RUBY, __FILE__, __LINE__ + 1
             class Client < self::Client
               ServerCalls = Module.new
               include ServerCalls
             end
+            Client.const_set :Server, self
           RUBY
         end
       end

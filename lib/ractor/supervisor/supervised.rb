@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-module Ractor
+class Ractor
   class Supervisor
     class Supervised < DelegateClass(::Ractor)
       def initialize(supervisor:, child_index:, ractor:)

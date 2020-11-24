@@ -41,4 +41,14 @@ class AfineServer < MultiplierServer
   sync def transform(number)
     super + @offset
   end
+
+  async def wait_async(delay)
+    sleep(delay)
+    42
+  end
+
+  sync def wait_sync(delay)
+    sleep(delay)
+    42
+  end
 end

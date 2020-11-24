@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-module Ractor
+class Ractor
   class Supervisor
     RSpec.describe self do
       context 'given a spec built manually' do
